@@ -1,0 +1,25 @@
+{% extends "main/base.html" %}
+{% block title %} Cancellation Requests {% endblock  %}
+{% block content %}
+ <h2>Pending Cancellation Requests</h2>
+
+ {% for request in requests %}
+  <div class="card mb-2">
+    <div class="card-body">
+      <p>User: {{ request.reservation.user.username }}</p>
+      <p>Event: {{ request.reservation.event.event_name }}</p>
+      <p>Tickets: {{ request.reservation.quantity }}</p>
+      <form method="post" action="{% url 'approve_cancellation' request.id %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-success">Approve</button>
+      </form>
+      <form method="post" action="{% url 'reject_cancellation' request.id %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger mt-2">Reject</button>
+      </form>
+    </div>
+  </div>
+ {% empty %}
+  <p>No pending requests.</p>
+ {% endfor %}
+{% endblock  %}

@@ -1,0 +1,21 @@
+{% extends "main/base.html" %}
+{% block title %} Home {% endblock  %}
+{% block content %}
+    {% if request.user.is_authenticated %}
+    <div class="mt-2">
+        <h1 class="text-center"> Welcome, {{request.user.username}}! </h1>
+    </div>
+    {% else %}
+    <div class="mt-2">
+    <h1 class="text-center"> Welcome! Register if you haven't already </h1>
+    </div>
+    <div class= "d-flex mt-2 justify-content-center">
+    <div class="ps-2"> 
+    <a class="btn btn-primary" href="{% url 'register' %}" role="button">Register</a>
+    </div>
+    <div class="ps-2">
+    <a class="btn btn-primary" href="{%url 'login'%}?next={{ request.path }}" role="button">Log In</a>
+    </div>
+    </div>
+    {% endif %}
+{% endblock  %}

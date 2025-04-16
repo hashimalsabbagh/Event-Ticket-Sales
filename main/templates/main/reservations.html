@@ -1,0 +1,63 @@
+{% extends "main/base.html" %}
+{% load extras %}
+{% block title %} Events {% endblock  %}
+{% block content %}
+   {% if events %}
+    <h1 class="text-center"> Here are your reservations </h1>
+
+    {% for event in events %}
+     <div class="card mt-2">
+      {% if forloop.first %}
+       <h5 class="card-header">Your Next Event</h5>
+      {% endif %}
+       <div class="card-body">
+        <h5 class="card-title">{{event.event.event_name}}</h5>
+        <p class="card-text">{{event.event.event_description}}</p>
+        <div class="d-flex flex-row">
+            <div> <p>Event Date: {{ event.event.end_date}} </p> </div>
+            <div class="ms-2"> <p> Number of Tickets: {{event.quantity}} </p> </div>
+        </div>
+        {% with request_obj=request_map|get_item:event.id %}
+         {% if request_obj %}
+            {% if request_obj.accepted == False %}
+                <span class="badge bg-danger">Cancellation Rejected</span>
+            {% else %}
+                <span class="badge bg-warning text-dark">Cancellation Pending</span>
+            {% endif %}
+         {% else %}
+            <div>
+              <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#cancel{{event.id}}">
+                  Cancel Reservation
+              </button>
+            </div>
+         {% endif %}
+        {% endwith %}
+  
+          
+       </div>
+      </div>
+
+      <!-- Modal -->
+     <div class="modal fade" id="cancel{{event.id}}" tabindex="-1" aria-labelledby="cancel{{event.id}}Label" aria-hidden="true">
+      <div class="modal-dialog">
+       <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="cancel{{event.id}}Label">Confirm</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+         <p> You are about to cancel {{event.quantity}} ticket(s)! </p>
+         <p> Are you sure? </p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <a class="btn btn-primary" href="{% url "cancelReservation" event.id %}" role="button">Confirm</a>
+        </div>
+       </div>
+      </div>
+    </div>
+     {% endfor %}
+    {% else %}
+      <h1 class="text-center"> You haven't registered for an event yet! </h1>
+    {% endif %}
+{% endblock %}

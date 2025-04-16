@@ -1,0 +1,105 @@
+{% extends "main/base.html" %}
+{% load bootstrap5 %}
+{% block title %} Events {% endblock  %}
+{% block content %}
+   {% if events %}
+    <h1 class="text-center"> Here are the following events! </h1>
+
+    {% for event in events %}
+     <div class="card mt-2">
+      {% if forloop.first %}
+       <h5 class="card-header">Latest</h5>
+      {% endif %}
+       <div class="card-body">
+        <h5 class="card-title">{{event.event_name}}</h5>
+        <p class="card-text">{{event.event_description}}</p>
+        <div class="d-flex flex-row">
+            <div class="me-2"><p> Price: ${{event.price}} </p></div>
+            <div class="me-2"> <p>Tickets: </p> </div>
+            <div class="progress w-50 mt-1" style="height: 20px">
+                <div class="progress-bar" role="progressbar"
+                     style="width: {% widthratio event.tickets_no event.max_tickets_no 100 %}%;" 
+                     aria-valuenow="{{ event.tickets_no }}" 
+                     aria-valuemin="0" aria-valuemax="{{event.max_tickets_no}}">
+
+                     {{event.tickets_no}} remaining
+                </div>
+                
+            </div>
+            <div class="ms-2"> <p>Event Date: {{ event.end_date}} </p> </div>
+        </div>
+        {% if request.user.is_authenticated %}
+            {% if event.id in bought %}
+             <p> You've already bought this </p>
+            {% else %}
+             <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#buyTickets{{event.id}}">
+                Buy Tickets   <!-- Modal Button -->
+             </button>
+     
+            {% endif %}
+     
+
+
+        <div class="modal fade" id="buyTickets{{event.id}}" tabindex="-1" aria-labelledby="buyTicketsLabel" aria-hidden="true">
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <form method = "POST" action="{% url 'buyTickets' event.id %}">
+                  {% csrf_token %}
+                  <div class="modal-header">
+                   <h5 class="modal-title" id="buyTicketsLabel">Purchase Tickets</h5>
+                   <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="quantity" class="form-label">Number of Tickets</label>       <!-- Modal Body -->
+                        <input type="number" name="quantity" class="form-control" id="quantity{{event.id}}" aria-describedby="quantityLimit{{event.id}}"
+                               min="1" max="10" value="1" required>
+                        <div id="quantityLimit{{event.id}}" class="form-text"> You can only buy 1-10 tickets! </div>
+                        <hr>
+                        <p> Total: $<span id="totalPrice{{event.id}}">{{event.price}} </span> </p>
+                    </div>
+                                                                                                                
+                  </div>
+                  <div class="modal-footer">
+                   <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                   <button type="submit" class="btn btn-primary">Buy</button>
+                  </div>
+                 </form>
+              </div>
+              <script>
+                document.addEventListener("DOMContentLoaded", function(){
+                  const quantityInput = document.getElementById("quantity{{event.id}}");
+                  const totalPriceElement = document.getElementById("totalPrice{{event.id}}");
+                  const eventPrice = parseFloat("{{event.price|floatformat:1}}");
+                  
+                  quantityInput.addEventListener("input", function(){
+                    const quantity = parseInt(quantityInput.value) || 0;
+                    const total = (quantity * eventPrice).toFixed(1);
+                    totalPriceElement.textContent = total;
+                  });
+                });
+               </script>
+            </div>
+          </div>
+        {% else %}
+         <div class="d-flex flex-row">
+            <div class="mt-2"> <p class="fs-5"> Log in to buy tickets! </p> </div>
+            <div class="p-1"><a class="btn btn-primary" href="{% url 'register' %}" role="button">Register</a></div>
+            <div class="p-1"> <a class="btn btn-primary" href="{%url 'login'%}?next={{ request.path }}" role="button">Login </a></div>
+          </div>
+         
+        {% endif %}
+        
+       </div>
+     </div>
+    
+    {% endfor %}
+   
+   
+   {% else %}
+
+    <h1 class="text-center"> No events unfortunately! Come back later </h2>
+   
+   {% endif %}
+
+{% endblock  %}
