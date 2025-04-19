@@ -13,8 +13,8 @@
   3. error when quantity is more than current amount of tickets
   4.  error when user doesn't have enough money)
 - Developed backend logic for wallet 
-  1. no more than 10,000 can be added at once
-  2. money changes according to event buying and refunding
+  1. no more than $10,000 can be added at once
+  2. user's money updates according to buying, refunding, and adding more money 
 - Developed backend logic for reservation cancelling 
   1. request goes to admin which they can accept or reject
   2. shows status to be pending until admin's answer
