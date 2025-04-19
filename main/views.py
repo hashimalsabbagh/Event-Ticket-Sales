@@ -85,6 +85,10 @@ def buyTickets(request, id):
                 event = event, 
                 quantity = quantity
              )
+             Transactions.objects.create(
+                 wallet = Wallet.objects.get(user=request.user),   # record transaction
+                 amount = (quantity * event.price) * -1
+             )
              Wallet.objects.filter(user=request.user).update(money=F('money') - (quantity * event.price)) #  deduct the total amount from user's wallet
              messages.success(request, f"You bought {quantity} ticket(s)!")
         else:
@@ -94,23 +98,31 @@ def buyTickets(request, id):
 @login_required
 def viewReservations(request): 
     events = TicketsPurchased.objects.filter(user=request.user).order_by('event__end_date')  # view user's reservations
-    requests = CancellationRequest.objects.filter(reservation__in=events)
+    requests = CancellationRequest.objects.filter(user = request.user)
 
-    request_map = {req.reservation.id: req for req in requests}
-    return render(request, 'main/reservations.html', {'events' : events, 'request_map' : request_map})
+    request_map = {req.reservation.id: req for req in requests if req.reservation is not None}
+    return render(request, 'main/reservations.html', {'events' : events, 'request_map' : request_map, 'requests': requests})
 
 @login_required
 def cancelReservation(request, id): 
     reservation = get_object_or_404(TicketsPurchased, id=id)
     if not CancellationRequest.objects.filter(reservation=reservation).exists():
-        CancellationRequest.objects.create(reservation=reservation)
+        CancellationRequest.objects.create(
+            reservation=reservation,
+            user = request.user,                                                            # if user didn't refund request already, create the request 
+            event_name = reservation.event.event_name,
+            event_description = reservation.event.event_description,
+            quantity = reservation.quantity                              
+        )
 
     return redirect('viewReservations')
 
 @login_required
 def viewWallet(request):
     cash = Wallet.objects.get(user=request.user)
-    return render(request, 'main/wallet.html', {'cash': cash})
+    transactions = Transactions.objects.filter(wallet = cash).order_by('-created_at')[:5]
+
+    return render(request, 'main/wallet.html', {'cash': cash, 'transactions' : transactions})
 
 
 @login_required
@@ -122,6 +134,10 @@ def addWallet(request):
          return redirect('viewWallet')
      
      Wallet.objects.filter(user=request.user).update(money=F('money') + addCash)  #updates the money user has
+     Transactions.objects.create(
+         wallet = Wallet.objects.get(user=request.user),  # record transaction
+         amount = addCash
+     )
     return redirect('viewWallet')
      
 @login_required
@@ -142,6 +158,11 @@ def approve_cancellation(request, id):
    
     Events.objects.filter(id=reservation.event.id).update(
     tickets_no=F('tickets_no') + reservation.quantity      # add back tickets to events
+    )
+
+    Transactions.objects.create(
+        wallet = Wallet.objects.get(user=reservation.user),
+        amount = (reservation.quantity * event.price)   # record transaction
     )
 
     CancellationRequest.objects.filter(id=id).update(accepted=True)

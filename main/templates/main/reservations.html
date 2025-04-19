@@ -2,62 +2,103 @@
 {% load extras %}
 {% block title %} Events {% endblock  %}
 {% block content %}
-   {% if events %}
+   
     <h1 class="text-center"> Here are your reservations </h1>
-
-    {% for event in events %}
-     <div class="card mt-2">
-      {% if forloop.first %}
-       <h5 class="card-header">Your Next Event</h5>
-      {% endif %}
-       <div class="card-body">
-        <h5 class="card-title">{{event.event.event_name}}</h5>
-        <p class="card-text">{{event.event.event_description}}</p>
-        <div class="d-flex flex-row">
+    
+    <div class="container-fluid mx-0">
+     <div class="row row-cols-2">
+      <div class="col-8">
+      {% if events %}
+       {% for event in events %}    <!-- Get Events User has Reserved -->
+        <div class="card mt-2">
+        {% if forloop.first %}
+        <h5 class="card-header">Your Next Event</h5>
+        {% endif %}
+        <div class="card-body">
+         <h5 class="card-title">{{event.event.event_name}}</h5>
+         <p class="card-text">{{event.event.event_description}}</p>
+         <div class="d-flex flex-row">
             <div> <p>Event Date: {{ event.event.end_date}} </p> </div>
             <div class="ms-2"> <p> Number of Tickets: {{event.quantity}} </p> </div>
-        </div>
-        {% with request_obj=request_map|get_item:event.id %}
-         {% if request_obj %}
+         </div>
+         {% with request_obj=request_map|get_item:event.id %}
+          {% if request_obj %}
             {% if request_obj.accepted == False %}
                 <span class="badge bg-danger">Cancellation Rejected</span>
-            {% else %}
+            {% else %}                                                                <!-- Check status of cancellation request -->
                 <span class="badge bg-warning text-dark">Cancellation Pending</span>
             {% endif %}
-         {% else %}
+          {% else %}
             <div>
               <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#cancel{{event.id}}">
                   Cancel Reservation
               </button>
             </div>
-         {% endif %}
-        {% endwith %}
-  
-          
+          {% endif %}
+         {% endwith %}
+        </div>
        </div>
-      </div>
 
       <!-- Modal -->
-     <div class="modal fade" id="cancel{{event.id}}" tabindex="-1" aria-labelledby="cancel{{event.id}}Label" aria-hidden="true">
-      <div class="modal-dialog">
-       <div class="modal-content">
-        <div class="modal-header">
-          <h1 class="modal-title fs-5" id="cancel{{event.id}}Label">Confirm</h1>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-         <p> You are about to cancel {{event.quantity}} ticket(s)! </p>
-         <p> Are you sure? </p>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-          <a class="btn btn-primary" href="{% url "cancelReservation" event.id %}" role="button">Confirm</a>
+       <div class="modal fade" id="cancel{{event.id}}" tabindex="-1" aria-labelledby="cancel{{event.id}}Label" aria-hidden="true">
+        <div class="modal-dialog">
+         <div class="modal-content">
+          <div class="modal-header">
+           <h1 class="modal-title fs-5" id="cancel{{event.id}}Label">Confirm</h1>
+           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+           <p> You are about to cancel {{event.quantity}} ticket(s)! </p>
+           <p> Are you sure? </p>
+          </div>
+          <div class="modal-footer">
+           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+           <a class="btn btn-primary" href="{% url "cancelReservation" event.id %}" role="button">Confirm</a>
+          </div>
+         </div>
         </div>
        </div>
-      </div>
-    </div>
+     
      {% endfor %}
-    {% else %}
-      <h1 class="text-center"> You haven't registered for an event yet! </h1>
-    {% endif %}
+     {% else %}
+      <div class="card mt-2">
+       <h5 class="card-header">Your Next Event</h5>
+       <div class="card-body">
+       <h5 class="card-title">You have no reservations</h5>
+       </div>
+      </div>
+     {% endif %}
+     </div>
+     <div class="col-4">
+      {% if requests %}
+       {% for request in requests %}
+        <div class="card mt-2">
+        {% if forloop.first %}
+         <h5 class="card-header">Past Refund Requests</h5>
+        {% endif %}       <!-- Get Refund requests  -->
+        <div class="card-body">
+        <h5 class="card-title">{{request.event_name}}</h5>
+        <p class="card-text">{{request.event_description}}</p>
+        <div class="d-flex flex-row">
+          <div> <p>Requested at: {{ request.requested_at}} </p> </div>
+          <div class="ms-2"> <p>| No. of Tickets: {{request.quantity}} </p> </div>
+       </div>
+        {% if request.accepted == False %}
+          <span class="badge bg-danger">Cancellation Rejected</span>
+        {% elif request.accepted == True %}
+          <span class="badge bg-success text-dark">Cancellation Accepted</span>
+        {% else %}                                                                       <!-- Check status of cancellation request -->
+          <span class="badge bg-warning text-dark">Cancellation Pending</span>
+        {% endif %}
+        </div>
+      </div>
+         {% endfor %}
+        {% else %}
+         <div class="card mt-2">
+          <h5 class="card-header">Past Refund Requests</h5>
+          <div class="card-body">
+          <h5 class="card-title">You have no refund requests</h5>
+          </div>
+         </div>
+        {% endif %}
 {% endblock %}
