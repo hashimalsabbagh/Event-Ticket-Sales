@@ -1,0 +1,68 @@
+{% extends "main/base.html" %}
+{% load bootstrap5 %}
+{% block title %} Your Events {% endblock  %}
+{% block content %}
+
+ <div class="card mt-2">
+   
+     <h5 class="card-header">Event Details </h5>
+   
+     <div class="card-body">
+      <h5 class="card-title">{{event.event_name}}</h5>
+      <p class="card-text">{{event.event_description}}</p>
+      <div class="d-flex flex-row">
+          <div class="me-2"><p> Price: ${{event.price}} </p></div> 
+          <div class="me-2"> <p>Tickets: </p> </div>
+          <div class="progress w-50 mt-1" style="height: 20px">
+              <div class="progress-bar" role="progressbar"
+                   style="width: {% widthratio event.tickets_no event.max_tickets_no 100 %}%;" 
+                   aria-valuenow="{{ event.tickets_no }}" 
+                   aria-valuemin="0" aria-valuemax="{{event.max_tickets_no}}">
+
+                   {{event.tickets_no}} remaining
+              </div>
+              
+          </div>
+          <div class="ms-2"> <p>Event Date: {{ event.end_date}} </p> </div>
+          
+      </div>
+    
+      
+      <hr class="w-50">
+      <h6> List of Buyers: </h6>
+      <hr class="w-50">
+      <div>
+        <table class="table w-50">
+            <thead>
+              <tr>
+                <th scope="col">#</th>
+                <th scope="col">Name</th>
+                <th scope="col">Amount</th>
+                <th scope="col"> Money Spent</th>
+              </tr>
+            </thead>
+            <tbody>
+            {% for buyer in buyers %}
+              <tr>
+                <th scope="row">{{forloop.counter}}</th>
+                <td>{{buyer.user__username}}</td>
+                <td>{{buyer.totaltickets}} ticket(s) </td>
+                <td>${{buyer.moneyspent}}</td>
+                
+              </tr>
+            {% endfor %}
+             <tr>
+                <th scope="row"> Total </th>
+                <th>{{event.numberofbuyers|default:'0'}} buyer(s)</th>
+                <th>{{event.tickets_sold|default:'0'}} ticket(s)</th>
+                <th>${{event.revenue|default:'0.0'}}</th>
+             </tr>
+            </tbody>
+        </table>
+      </div>
+    
+
+     </div>
+ </div>
+
+{% endblock  %}

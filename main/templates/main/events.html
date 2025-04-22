@@ -28,9 +28,10 @@
             </div>
             <div class="ms-2"> <p>Event Date: {{ event.end_date}} </p> </div>
         </div>
-        {% if request.user.is_authenticated %}
+        {% if request.user.is_authenticated and request.user.userprofile.type == 'normal' %}
             {% if event.id in bought %}
              <p> You've already bought this </p>
+            
             {% else %}
              <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#buyTickets{{event.id}}">
                 Buy Tickets   <!-- Modal Button -->
@@ -81,6 +82,8 @@
                </script>
             </div>
           </div>
+        {% elif request.user.userprofile.type == 'host' or user.is_superuser %}
+         <p>  </p> 
         {% else %}
          <div class="d-flex flex-row">
             <div class="mt-2"> <p class="fs-5"> Log in to buy tickets! </p> </div>

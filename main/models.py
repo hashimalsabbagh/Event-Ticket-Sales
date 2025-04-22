@@ -3,13 +3,19 @@ from django.contrib.auth.models import User
 
 
 class Events(models.Model): 
+    event_host = models.ForeignKey(User, on_delete=models.CASCADE, default = 1)
     event_name = models.CharField(max_length=100)
     event_description = models.CharField(max_length=1000)
     max_tickets_no = models.IntegerField(default=500)
-    tickets_no = models.IntegerField(default=max_tickets_no)
-    release_date = models.DateField()
+    tickets_no = models.IntegerField(blank=True, null=True)
+    release_date = models.DateField(auto_now_add=True)
     end_date = models.DateField()
     price = models.FloatField()
+
+    def save(self, *args, **kwargs):
+        if self.tickets_no is None: 
+            self.tickets_no = self.max_tickets_no   # starting number of tickets = max tickets
+        super().save(*args, **kwargs)
 
     def __str__(self): 
         return self.event_name
@@ -56,4 +62,16 @@ class Transactions(models.Model):
          return f"Transaction: {self.wallet.user} added {self.amount} at {timestamp}"
         else:
          return f"Transaction: {self.wallet.user} deducted {self.amount} at {timestamp}"
+        
+class UserProfile(models.Model): 
+    USER_TYPES = [
+        ('host', 'Event Hoster'),
+        ('normal', 'Normal User'),
+    ]
+
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    type = models.CharField(max_length=10, choices=USER_TYPES, default='normal')
+
+    def __str__(self):
+        return f"{self.user.username} is account type: {self.type}"
 # Create your models here.

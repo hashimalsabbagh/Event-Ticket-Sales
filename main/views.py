@@ -1,10 +1,10 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpResponse, HttpRequest
+from django.http import HttpResponse, HttpRequest, HttpResponseForbidden
 from .forms import *
 from django.contrib.auth import authenticate, login as auth_login
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth import logout
-from django.db.models import F
+from django.db.models import F, ExpressionWrapper, FloatField, Sum, Count
 from django.contrib import messages
 
 def home(request): 
@@ -26,6 +26,7 @@ def register(request):
             new_user = authenticate(username=form.cleaned_data['username'], password=form.cleaned_data['password'])
             auth_login(request, new_user)
             Wallet.objects.create(user=new_user, money=0.00)
+            UserProfile.objects.create(user=new_user, type=form.cleaned_data['type'])
             return redirect('home')
     else: 
         form = UserForm()
@@ -73,6 +74,9 @@ def buyTickets(request, id):
             return redirect('viewEvents')
         if quantity > 10: 
             messages.error(request, "You are only allowed a maximum of 10 tickets")   # don't allow more than 10 ticket purchases
+            return redirect('viewEvents')
+        if UserProfile.objects.get(user=request.user).type == 'host':    # don't allow hosts to buy tickets 
+            messages.error(request, "You cannot buy tickets as a host") 
             return redirect('viewEvents')
         if event.tickets_no >= quantity:
             if quantity * event.price > wallet.money:   # checks if user has enough money. if not: redirect and show error message 
@@ -180,6 +184,50 @@ def reject_cancellation(request, id):
 
     return redirect('manageCancellation')
 
+@login_required
+def hostEvents(request): 
+    revenue_exp = ExpressionWrapper(            
+        F('ticketspurchased__quantity') * F('price'),   # calculate revenue using price of event and quantity of tickets purchased
+        output_field = FloatField()
+    )
+    events = Events.objects.filter(event_host = request.user).annotate(revenue=Sum(revenue_exp)).order_by('end_date')
+    return render(request, 'main/hostevents.html', {'events' : events})
 
+@login_required
+def addEvent(request):
+    if UserProfile.objects.get(user=request.user).type != 'host':
+            return HttpResponseForbidden("You are not allowed to add events")
+    if request.method == 'POST': 
+        form = EventForm(request.POST)
+        if form.is_valid():
+            event = form.save(commit=False)
+            event.event_host = request.user
+            event.save()
+            return redirect('hostEvents')
+    else:
+        form = EventForm()
+    return render(request, 'main/addEvent.html', {'form': form})
+
+@login_required     
+def detailEvent(request, id): 
+    if UserProfile.objects.get(user=request.user).type != 'host':
+            return HttpResponseForbidden("You are not allowed to see this page")
+    revenue_exp = ExpressionWrapper(
+          F('ticketspurchased__quantity') * F('price'),   # calculate revenue using price of event and quantity of tickets purchased
+        output_field = FloatField()
+    )
+    event = Events.objects.filter(id = id).annotate(
+        revenue=Sum(revenue_exp),  # total money made
+        tickets_sold = Sum('ticketspurchased__quantity'),  # total number of tickets sold
+        numberofbuyers = Count('ticketspurchased__user', distinct=True) # number of distinct buyers
+    ).first()
+    
+    buyers = TicketsPurchased.objects.filter(event=event).values(
+        'user__username'
+    ).annotate(
+        totaltickets = Sum('quantity'),   # number of tickets each user bought
+        moneyspent = Sum(F('quantity') * F('event__price'))  # amount of money each user spent
+    )
+    return render(request, 'main/details.html', {'event' : event, 'buyers' : buyers})
 
 # Create your views here.

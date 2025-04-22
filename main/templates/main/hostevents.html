@@ -1,0 +1,47 @@
+{% extends "main/base.html" %}
+{% load bootstrap5 %}
+{% block title %} Your Events {% endblock  %}
+{% block content %}
+
+   {% if events %}
+    <h1 class="text-center"> Here are your events! </h1>   
+    {% for event in events %}            <!-- display events made by the host -->
+     <div class="card mt-2">
+      {% if forloop.first %}
+       <h5 class="card-header">Soon Event</h5>
+      {% endif %}
+       <div class="card-body">
+        <h5 class="card-title">{{event.event_name}}</h5>
+        <p class="card-text">{{event.event_description}}</p>
+        <div class="d-flex flex-row">
+            <div class="me-2"><p> Price: ${{event.price}} </p></div> 
+            <div class="me-2"> <p>Tickets: </p> </div>
+            <div class="progress w-50 mt-1" style="height: 20px">
+                <div class="progress-bar" role="progressbar"
+                     style="width: {% widthratio event.tickets_no event.max_tickets_no 100 %}%;" 
+                     aria-valuenow="{{ event.tickets_no }}" 
+                     aria-valuemin="0" aria-valuemax="{{event.max_tickets_no}}">
+
+                     {{event.tickets_no}} remaining
+                </div>
+                
+            </div>
+            <div class="ms-2"> <p>Event Date: {{ event.end_date}} </p> </div>
+            <div class="ms-2"> <p> Money made: ${{event.revenue|floatformat:1|default:"0.0"}}</p> </div>
+        </div>
+        <a class="btn btn-primary" href="{% url "detailEvent" event.id %}" role="button">Details</a>
+       </div>
+    </div>
+    {% endfor %}
+    
+   {% else %}
+    <h1 class="text-center"> You haven't hosted any events yet!  </h2>
+   {% endif %}
+    
+  
+   <div class="mt-2"> 
+    <a class="btn btn-primary" href="{% url "addEvent" %}" role="button">Create Event</a>
+   </div>
+
+
+{% endblock  %}

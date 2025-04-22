@@ -34,5 +34,8 @@ urlpatterns = [
     path('cancellations/', views.manageCancellation, name='manageCancellation'),
     path('cancellations/approve/<int:id>/', views.approve_cancellation, name='approve_cancellation'),
     path('cancellations/reject/<int:id>/', views.reject_cancellation, name='reject_cancellation'),
+    path('yourevents/', views.hostEvents, name="hostEvents"),
+    path('yourevents/addEvent/', views.addEvent, name="addEvent"),
+    path('yourevents/event/<int:id>', views.detailEvent, name="detailEvent"),
     
 ]

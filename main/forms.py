@@ -8,6 +8,7 @@ from django.contrib.auth import authenticate
 
 class UserForm(ModelForm):
     password = forms.CharField(widget=forms.PasswordInput())
+    type = forms.ChoiceField(choices=[('', '---')] + list(UserProfile.USER_TYPES))
     class Meta: 
         model = User
         fields = ['username', 'email', 'password']
@@ -51,5 +52,18 @@ class LoginForm(forms.Form):
             if user is None:
                 raise forms.ValidationError("Incorrect password.")
         return password
+    
+class EventForm(ModelForm):
+    class Meta: 
+        model = Events
+        fields = ['event_name', 'event_description', 'max_tickets_no', 'end_date', 'price']
+        widgets = {
+            'event_name' : forms.Textarea(attrs={'rows' : 1, 'placeholder' : 'Write your event name here...',  'class' : 'form-control'}),
+            'event_description': forms.Textarea(attrs={'rows': 4, 'placeholder': 'Write your event description here...', 'class': 'form-control'}), 
+            'max_tickets_no':forms.NumberInput(attrs={'class' : 'form-control'}),
+            'end_date' :forms.DateInput(attrs={'type' : 'date', 'class' : 'form-control'}),
+            'price' : forms.NumberInput(attrs={'class' : 'form-control'}),
+        }
+    
 
     

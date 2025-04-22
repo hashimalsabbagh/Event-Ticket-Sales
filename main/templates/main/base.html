@@ -24,21 +24,33 @@
               </li>
              
               {% if request.user.is_authenticated %}
-              <li class="nav-item">
-                <a class="nav-link" href="{% url "viewReservations" %}">My Reservations</a>
-              </li>
-              {% if request.user.is_superuser %}
-              <li class="nav-item">
+               {% if request.user.is_superuser %}  <!-- if user is admin -->
+                <li class="nav-item">
                 <a class="nav-link" href="{% url "manageCancellation" %}">Cancellations</a>
-              </li>
-              {% else %}
+                </li>
+               {% endif %}
+               {% if request.user.userprofile.type == 'normal' %} <!-- if user is normal -->
+                <li class="nav-item">
+                 <a class="nav-link" href="{% url "viewReservations" %}">My Reservations</a>
+                </li>
+              
+                <li class="nav-item">
+                 <a class="nav-link" href="{% url "viewWallet" %}">Wallet</a>
+                </li>
+               {% elif request.user.userprofile.type == 'host' %}
+                <li class="nav-item">
+                 <a class="nav-link" href="{% url "hostEvents" %}">Our Events</a>
+                </li>
+             
+                <li class="nav-item">
+                 <a class="nav-link" href="#">Reports</a>
+                </li>
+               {% endif %}
+             
+              
                <li class="nav-item">
-                <a class="nav-link" href="{% url "viewWallet" %}">Wallet</a>
-               </li>
-              {% endif %}
-              <li class="nav-item">
                 <a class="nav-link" href="{% url 'logout' %}">Logout</a>
-              </li>
+               </li>
               {% endif %}
             </ul>
           </div>
